@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
@@ -9,9 +11,17 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Route;
-use App\Models\User; // thêm dòng này nếu chưa có
+
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\ReviewController;
+
+use App\Models\User;
+
 // ============================================
 // FRONTEND ROUTES
 // ============================================
@@ -50,6 +60,7 @@ Route::middleware('auth')->group(function () {
         Route::put('/addresses/{address}/set-default', [AccountController::class, 'setDefaultAddress'])->name('addresses.set-default');
     });
 });
+
 // Reviews (require auth)
 Route::middleware('auth')->group(function () {
     Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
@@ -88,16 +99,8 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 
 // ============================================
-// ADMIN ROUTES (from previous setup)
+// ADMIN ROUTES
 // ============================================
-
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\CustomerController;
-use App\Http\Controllers\Admin\CouponController;
-use App\Http\Controllers\Admin\ReviewController;
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -123,25 +126,31 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
 });
-    Route::get('/ping', function () {
-        return 'ok';
+
+// ============================================
+// DEBUG / MAINTENANCE ROUTES (tạm dùng)
+// ============================================
+
+Route::get('/ping', function () {
+    return 'ok';
 });
 
-    Route::get('/run-migrate', function () {
+Route::get('/run-migrate', function () {
     Artisan::call('migrate', ['--force' => true]);
-        return 'Migrated!';
+    return 'Migrated!';
 });
-    Route::get('/make-admin/{id}', function ($id) {
+
+Route::get('/make-admin/{id}', function ($id) {
     $user = User::find($id);
     if (!$user) {
         return 'User không tồn tại';
     }
 
-    // tuỳ theo cấu trúc bảng users của bro:
-    // Nếu có cột 'role'
+    // Tuỳ theo cấu trúc bảng users:
+    // Nếu có cột 'role' dạng string:
     $user->role = 'admin';
 
-    // HOẶC nếu bro dùng cột 'is_admin' dạng tinyint/bool:
+    // Hoặc nếu dùng cột 'is_admin' kiểu boolean / tinyint:
     // $user->is_admin = 1;
 
     $user->save();
