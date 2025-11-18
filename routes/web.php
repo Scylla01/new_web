@@ -9,6 +9,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
+use Illuminate\Support\Facades\Artisan;
 // ============================================
 // FRONTEND ROUTES
 // ============================================
@@ -119,4 +120,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('reviews', ReviewController::class)->only(['index', 'show', 'destroy']);
     Route::post('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
+});
+    Route::get('/ping', function () {
+        return 'ok';
+});
+
+    Route::get('/run-migrate', function () {
+    Artisan::call('migrate', ['--force' => true]);
+        return 'Migrated!';
 });
