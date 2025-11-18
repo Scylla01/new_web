@@ -10,6 +10,8 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
+use App\Models\User; // thêm dòng này nếu chưa có
 // ============================================
 // FRONTEND ROUTES
 // ============================================
@@ -128,4 +130,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/run-migrate', function () {
     Artisan::call('migrate', ['--force' => true]);
         return 'Migrated!';
+});
+    Route::get('/make-admin/{id}', function ($id) {
+    $user = User::find($id);
+    if (!$user) {
+        return 'User không tồn tại';
+    }
+
+    // tuỳ theo cấu trúc bảng users của bro:
+    // Nếu có cột 'role'
+    $user->role = 'admin';
+
+    // HOẶC nếu bro dùng cột 'is_admin' dạng tinyint/bool:
+    // $user->is_admin = 1;
+
+    $user->save();
+
+    return 'User '.$id.' đã được set admin';
 });
