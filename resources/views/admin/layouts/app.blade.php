@@ -232,6 +232,12 @@
                     <i class="fas fa-star"></i> Đánh Giá
                 </a>
             </li>
+            <!-- ✅ MENU BANNER MỚI -->
+            <li>
+                <a href="{{ route('admin.banners.index') }}" class="{{ request()->routeIs('admin.banners.*') ? 'active' : '' }}">
+                    <i class="fas fa-images"></i> Banner
+                </a>
+            </li>
         </ul>
     </div>
 

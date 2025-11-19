@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Mail\OrderConfirmation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -64,11 +66,21 @@ class OrderController extends Controller
             return back()->with('error', 'Không thể thay đổi trạng thái đơn hàng này!');
         }
 
+        $oldStatus = $order->status;
         $order->update(['status' => $validated['status']]);
 
         // Auto update payment status when delivered
         if ($validated['status'] === 'delivered' && $order->payment_method === 'cod') {
             $order->update(['payment_status' => 'paid']);
+        }
+
+        // Send email notification when status changes to confirmed or shipping
+        if (in_array($validated['status'], ['confirmed', 'shipping', 'delivered']) && $oldStatus !== $validated['status']) {
+            try {
+                Mail::to($order->user->email)->send(new OrderConfirmation($order));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send order confirmation email: ' . $e->getMessage());
+            }
         }
 
         return back()->with('success', 'Trạng thái đơn hàng đã được cập nhật!');
@@ -83,5 +95,18 @@ class OrderController extends Controller
         $order->update(['payment_status' => $validated['payment_status']]);
 
         return back()->with('success', 'Trạng thái thanh toán đã được cập nhật!');
+    }
+    
+    /**
+     * Resend order confirmation email
+     */
+    public function resendEmail(Order $order)
+    {
+        try {
+            Mail::to($order->user->email)->send(new OrderConfirmation($order));
+            return back()->with('success', 'Email xác nhận đã được gửi lại!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Không thể gửi email: ' . $e->getMessage());
+        }
     }
 }

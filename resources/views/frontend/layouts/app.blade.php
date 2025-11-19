@@ -35,6 +35,45 @@
             gap: 20px;
         }
 
+        /* ===== FIXED HEADER KHI SCROLL ===== */
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .bottom-nav {
+            position: sticky;
+            top: 73px;
+            z-index: 1000;
+            background: white;
+        }
+        /* Fixed toàn bộ header
+        body > *:nth-child(1),
+        body > *:nth-child(2) {
+        position: sticky;
+        z-index: 1000;
+} */
+
+        /* .top-header {
+            top: 0;
+        }
+
+        .bottom-nav {
+            top: 0;
+        } */
+
+/* Hoặc đơn giản hơn */
+        /* .top-header,
+        .bottom-nav {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .top-header {
+            z-index: 1001;
+        } */
         /* Logo - FIXED */
         .logo {
             color: white;
@@ -328,7 +367,7 @@
 
         /* Footer */
         .footer {
-            background: #2c3e50;
+            background: #2d5f3f;
             color: white;
             padding: 50px 0 20px;
             margin-top: 80px;
@@ -1233,6 +1272,7 @@
                 clearInterval(chatPollingInterval);
             }
         });
+        
     </script>
     
     @stack('scripts')

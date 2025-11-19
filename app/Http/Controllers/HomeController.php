@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Banner;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -13,6 +14,9 @@ class HomeController extends Controller
      */
     public function index()
     {
+        // Get active banners ordered by sort_order
+        $banners = Banner::getActiveBanners();
+
         // Get active categories with product count
         $categories = Category::where('is_active', true)
             ->whereNull('parent_id')
@@ -35,6 +39,6 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        return view('frontend.home', compact('categories', 'featuredProducts', 'newProducts'));
+        return view('frontend.home', compact('banners', 'categories', 'featuredProducts', 'newProducts'));
     }
 }

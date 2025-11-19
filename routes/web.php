@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Artisan;
-
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
@@ -10,17 +8,9 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
-
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Admin\OrderController;
-use App\Http\Controllers\Admin\CustomerController;
-use App\Http\Controllers\Admin\CouponController;
-use App\Http\Controllers\Admin\ReviewController;
-
-use App\Models\User;
+use Illuminate\Support\Facades\Artisan;
 
 // ============================================
 // FRONTEND ROUTES
@@ -102,6 +92,14 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 // ADMIN ROUTES
 // ============================================
 
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CouponController;
+use App\Http\Controllers\Admin\ReviewController;
+
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     
@@ -116,6 +114,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('orders', OrderController::class)->only(['index', 'show', 'update']);
     Route::post('orders/{order}/update-status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::post('orders/{order}/update-payment-status', [OrderController::class, 'updatePaymentStatus'])->name('orders.update-payment-status');
+    Route::post('orders/{order}/resend-email', [OrderController::class, 'resendEmail'])->name('orders.resend-email');
     
     Route::resource('customers', CustomerController::class)->only(['index', 'show', 'destroy']);
     
@@ -125,10 +124,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::resource('reviews', ReviewController::class)->only(['index', 'show', 'destroy']);
     Route::post('reviews/{review}/approve', [ReviewController::class, 'approve'])->name('reviews.approve');
     Route::post('reviews/{review}/reject', [ReviewController::class, 'reject'])->name('reviews.reject');
+
+    // ✅ Banner routes - ĐÃ SỬA
+    Route::resource('banners', BannerController::class);
+    Route::post('banners/{banner}/toggle-status', [BannerController::class, 'toggleStatus'])->name('banners.toggle-status');
 });
 
 // ============================================
-// DEBUG / MAINTENANCE ROUTES (tạm dùng)
+// UTILITY ROUTES
 // ============================================
 
 Route::get('/ping', function () {
@@ -138,22 +141,4 @@ Route::get('/ping', function () {
 Route::get('/run-migrate', function () {
     Artisan::call('migrate', ['--force' => true]);
     return 'Migrated!';
-});
-
-Route::get('/make-admin/{id}', function ($id) {
-    $user = User::find($id);
-    if (!$user) {
-        return 'User không tồn tại';
-    }
-
-    // Tuỳ theo cấu trúc bảng users:
-    // Nếu có cột 'role' dạng string:
-    $user->role = 'admin';
-
-    // Hoặc nếu dùng cột 'is_admin' kiểu boolean / tinyint:
-    // $user->is_admin = 1;
-
-    $user->save();
-
-    return 'User '.$id.' đã được set admin';
 });

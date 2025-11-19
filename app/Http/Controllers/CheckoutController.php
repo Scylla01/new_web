@@ -8,6 +8,8 @@ use App\Models\Address;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Mail\OrderConfirmation;
+use Illuminate\Support\Facades\Mail;
 
 class CheckoutController extends Controller
 {
@@ -110,6 +112,18 @@ class CheckoutController extends Controller
             // Clear cart
             session()->forget('cart');
             session()->forget('discount');
+
+            // ✅ GỬI EMAIL XÁC NHẬN ĐƠN HÀNG (sau khi tạo order thành công)
+            try {
+                // Load relationships cần thiết cho email
+                $order->load(['user', 'shippingAddress', 'items.product']);
+                
+                // Gửi email
+                Mail::to($order->user->email)->send(new OrderConfirmation($order));
+            } catch (\Exception $e) {
+                // Log lỗi nhưng không làm gián đoạn checkout
+                \Log::error('Lỗi gửi email xác nhận đơn hàng: ' . $e->getMessage());
+            }
 
             DB::commit();
 
